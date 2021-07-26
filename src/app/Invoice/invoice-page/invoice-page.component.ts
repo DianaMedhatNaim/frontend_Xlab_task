@@ -1,3 +1,4 @@
+import { Customer } from './../../_Models/customer';
 import { Invoice } from './../../_Models/invoice';
 import { InvoiceService } from 'src/app/_Services/invoice.service';
 import { Items } from './../../_Models/items';
@@ -36,22 +37,28 @@ export class InvoicePageComponent implements OnInit {
     submitted: boolean;
 
     AllItems: Items[];
+    AllCustomers:Customer[];
     cbxItema:any[]=[];
+    cbxCust:any[]=[];
     itemsNames:any[];
     price:number;
     searchId:number;
     InvoiceId:number;
     custmerName:string;
-    invoiceDate:Date;
-    invoice_numbers:Invoice[];
+    invoiceDate:any;
+    invoice_numbers:Invoice[]=[];
     maxInvoice_number:number;
     invoiceTotalPrice:number=0;
     invoiceTotalItems:number=0;
+    result:any;
+    btn_disabled:any=false;
+
     constructor(private InvoiceService: InvoiceService, private messageService: MessageService, private confirmationService: ConfirmationService) { }
 
     ngOnInit() {
 
       this.InvoiceService.getInvoice_no().subscribe(data => {this.invoice_numbers = data;
+        // console.log("data "+data);
     //     this.invoice_numbers.forEach(element => {
     //       this.maxInvoice_number=element.invoice_no+1;
 
@@ -68,6 +75,13 @@ export class InvoicePageComponent implements OnInit {
 
       // }
       //     );
+      this.InvoiceService.getCustomers().subscribe(data=>{this.AllCustomers=data;
+        this.AllCustomers.forEach(element => {
+          this.cbxCust.push({label:element.customer_Name , value: element.customer_Name});
+
+
+  });
+      })
           this.InvoiceService.getallItems().subscribe(data => {this.AllItems = data;
             this.AllItems.forEach(element => {
             // this.itemsNames.push(element.item_Name);
@@ -93,7 +107,10 @@ export class InvoicePageComponent implements OnInit {
         }
             );
 
-
+            // var currentdate = new Date();
+            // this.invoiceDate = currentdate.getDate() + "/"
+            //                 + (currentdate.getMonth()+1)  + "/"
+            //                 + currentdate.getFullYear();
 
 
     }
@@ -104,21 +121,29 @@ export class InvoicePageComponent implements OnInit {
         this.productDialog = true;
     }
 
-    deleteSelectedProducts() {
+    deleteSelectedProducts(product: InvoiceData) {
         this.confirmationService.confirm({
             message: 'Are you sure you want to delete the selected products?',
             header: 'Confirm',
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
+
                 this.invoiceData = this.invoiceData.filter(val => !this.selectedProducts.includes(val));
+
                 this.selectedProducts = null;
+
+
                 this.messageService.add({severity:'success', summary: 'Successful', detail: 'Products Deleted', life: 3000});
+
             }
         });
+        this.invoiceTotalPrice=this.invoiceTotalPrice-(product.totalPrice);
+                console.log("total_price: "+product.totalPrice);
     }
 
     editProduct(product: InvoiceData) {
         this.product = {...product};
+        console.log("item name "+this.product.item_Name);
         this.productDialog = true;
     }
 
@@ -129,6 +154,8 @@ export class InvoicePageComponent implements OnInit {
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
                 this.invoiceData = this.invoiceData.filter(val => val.item_Name !== product.item_Name);
+                this.invoiceTotalPrice=this.invoiceTotalPrice-(product.totalPrice);
+                console.log("total_price: "+product.totalPrice);
                 this.product = {};
                 this.messageService.add({severity:'success', summary: 'Successful', detail: 'Product Deleted', life: 3000});
             }
@@ -150,14 +177,22 @@ export class InvoicePageComponent implements OnInit {
 
                 this.product.customer_Name=this.custmerName;
                 this.product.invoice_Date=this.invoiceDate;
+                if(this.product.quantity==undefined)
+                {
+                  this.product.quantity=0;
+                }
                 this.product.totalPrice=this.product.quantity*this.product.item_Price;
-                this.invoiceData[this.findItemByid(this.product.invoice_no)] = this.product;
+                 this.invoiceData[this.findItemByItemName(this.product.item_Name)] = this.product;
+                this.invoiceData.forEach(element => {
+                  console.log("first if "+element.item_Name,element.customer_Name);
+                });
                  this.invoiceTotalPrice=0;
                  console.log("before enter "+ this.invoiceTotalPrice);
                 this.invoiceData.forEach(element => {
                   this.invoiceTotalPrice=this.invoiceTotalPrice+element.totalPrice;
                   if(this.invoiceData.length!=undefined){
                   this.product.invoice_TotalQty=this.invoiceData.length;
+                  this.product.invoice_TotalPrice=this.invoiceTotalPrice;
                   }
                   console.log("enter "+ this.invoiceTotalPrice);
                   console.log("totalprice "+ element.totalPrice);
@@ -167,7 +202,7 @@ export class InvoicePageComponent implements OnInit {
               console.log("invPrice "+ this.invoiceTotalPrice);
 
 
-                this.invoiceData[this.findItemByid(this.product.invoice_no)] = this.product;
+                this.invoiceData[this.findItemByItemName(this.product.item_Name)] = this.product;
                 console.log("pro "+this.product.item_Name,this.product.customer_Name);
                 this.invoiceData.forEach(element => {
                   console.log("if "+element.item_Name,element.customer_Name);
@@ -187,6 +222,11 @@ export class InvoicePageComponent implements OnInit {
               // this.invoiceData.forEach(element => {
               //     this.invoiceTotalPrice=this.invoiceTotalPrice+element.totalPrice;
               // });
+
+              if(this.product.quantity==undefined)
+                {
+                  this.product.quantity=0;
+                }
               this.product.totalPrice=this.product.item_Price*this.product.quantity;
               this.invoiceTotalPrice=this.invoiceTotalPrice+this.product.totalPrice;
               this.product.invoice_TotalPrice=this.invoiceTotalPrice
@@ -240,15 +280,15 @@ export class InvoicePageComponent implements OnInit {
         }
     }
 
-    findItemByid(id: number): number {
+    findItemByItemName(name: string): number {
         let index = -1;
         for (let i = 0; i < this.invoiceData.length; i++) {
-            if (this.invoiceData[i].invoice_no === id) {
+            if (this.invoiceData[i].item_Name === name) {
                 index = i;
                 break;
             }
         }
-
+console.log("index: "+index)
         return index;
     }
 
@@ -271,9 +311,16 @@ console.log("pppp "+this.price);
     }
     Search()
     {
-
+      this.btn_disabled=true;
       console.log("idd"+this.searchId);
       this.InvoiceService.getallInvoice(this.searchId).subscribe(data => {this.invoiceData = data;
+
+        if(this.invoiceData.length==0){
+          console.log(this.invoiceData);
+          this.messageService.add({severity:'warn', summary: 'Warning', detail: 'This invoice is not available', life: 6000});
+      this.Clear_Data();
+        }
+
         this.invoiceData.forEach(element => {
           console.log(element.customer_Name);
           this.custmerName=element.customer_Name;
@@ -305,13 +352,57 @@ console.log("pppp "+this.price);
     }
     Insert()
     {
-      this.InvoiceService.insertInvoice(this.invoiceData).subscribe(data => {console.log(data);});
 
-      this.invoiceData.forEach(element => {
-        console.log("id "+element.invoice_no,"name "+element.item_Name,"total "+element.totalPrice,"custome "+element.customer_Name ,element.invoice_TotalQty,element.invoice_TotalPrice);
+    //   const promise=new Promise((resolve, reject) => {
+    //      this.invoiceMainData();
+    //    this.InvoiceService.insertInvoice(this.invoiceData).subscribe(data => {console.log("insert "+data);
+    //    this.result=data;
+
+    //   });
+
+    //     resolve(0);
+    // })
+    // .then(() => {
+    //      if(this.result=="false")
+    //   {
+    //    this.messageService.add({severity:'warn', summary: 'Warning', detail: 'Please enter all invoice information', life: 3000});
+
+    //   }
+    //   else{
+    //     this.Clear_Data();
+    //   }
+    // })
+    // .catch(() => {
+    //     console.error('Do that');
+    // })
+    // .then(() => {
+    //     console.log('Do this, no matter what happened before');
+    // });
+
+
+      console.log("hello insert");
+      // this.invoiceData.forEach(element => {
+      //   console.log("in insert"+element.invoice_no + element.customer_Name);
+      // });
+      this.invoiceMainData();
+       this.InvoiceService.insertInvoice(this.invoiceData).subscribe(data => {console.log("insert "+data);
+
+       if(data=="false")
+       {
+        this.messageService.add({severity:'warn', summary: 'Warning', detail: 'Please enter all invoice information', life: 3000});
+
+       }
+       else{
+         this.Clear_Data();
+       }
       });
-      this.messageService.add({severity:'success', summary: 'Successful', detail: 'Invoice Inserted', life: 3000});
-      this.Clear_Data();
+
+
+      // this.invoiceData.forEach(element => {
+      //   console.log("id "+element.invoice_no,"name "+element.item_Name,"total "+element.totalPrice,"custome "+element.customer_Name ,element.invoice_TotalQty,element.invoice_TotalPrice);
+      // });
+      // this.messageService.add({severity:'success', summary: 'Successful', detail: 'Invoice Inserted', life: 3000});
+       //this.Clear_Data();
     }
     Update()
     {
@@ -325,22 +416,55 @@ console.log("pppp "+this.price);
 
 
       // this.currentData();
-      this.InvoiceService.updateInvoice(this.invoiceData).subscribe(data => {console.log(data);});
-      this.messageService.add({severity:'success', summary: 'Successful', detail: 'Invoice Updated', life: 3000});
-      this.Clear_Data();
+
+      // this.invoiceData.forEach(element => {
+      //   element.customer_Name=this.custmerName;
+      //   element.invoice_Date=this.invoiceDate;
+      //   element.invoice_TotalPrice=this.invoiceTotalPrice;
+      //   element.invoice_TotalQty=this.invoiceData.length;
+      // });
+      this.invoiceMainData();
+
+      console.log("cust_name"+this.custmerName);
+      this.InvoiceService.updateInvoice(this.invoiceData).subscribe(
+        data => {console.log(data);
+      if(data==false)
+      {
+        this.messageService.add({severity:'warn', summary: 'Warning', detail: 'Please enter all invoice information', life: 9000});
+        console.log("if");
+      }
+      else{
+        this.messageService.add({severity:'success', summary: 'Successful', detail: 'Invoice Updated', life: 3000});
+        this.Clear_Data();
+        console.log("else");
+      }
+      });
+
     }
     Delete()
     {
-      this.InvoiceService.deleteInvoice(this.InvoiceId).subscribe(data => {console.log(data);});
-      this.messageService.add({severity:'success', summary: 'Successful', detail: 'Invoice Deleted', life: 3000});
+      this.InvoiceService.deleteInvoice(this.InvoiceId).subscribe(data => {
+        console.log("data: "+data);
+       if(data==true)
+       {
+        this.messageService.add({severity:'success', summary: 'Successful', detail: 'Invoice Deleted', life: 9000});
+       }
+      });
+
       this.Clear_Data();
     }
     AutoIncrementInvoice_no()
     {
+      if(this.invoice_numbers.length!=0){
       this.invoice_numbers.forEach(element => {
         this.maxInvoice_number=element.invoice_no+1;
+        // console.log("id : "+this.maxInvoice_number);
 
    });
+  }
+  else{
+    this.maxInvoice_number=1;
+  }
     }
     // currentData()
     // {
@@ -354,7 +478,15 @@ console.log("pppp "+this.price);
     //           this.invoiceData.push(this.product);
 
     // }
-
+invoiceMainData()
+{
+  this.invoiceData.forEach(element => {
+    element.customer_Name=this.custmerName;
+    element.invoice_Date=this.invoiceDate;
+    element.invoice_TotalPrice=this.invoiceTotalPrice;
+    element.invoice_TotalQty=this.invoiceData.length;
+  });
+}
 
 
 }

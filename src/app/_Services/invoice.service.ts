@@ -1,3 +1,4 @@
+import { Customer } from './../_Models/customer';
 // import { InvoiceData } from 'src/app/_Models/invoice-data';
 
 import { InvoiceDetails } from './../_Models/invoice-details';
@@ -6,6 +7,7 @@ import { HttpClient,HttpHeaders,HttpParams } from '@angular/common/http';
 import { Items } from '../_Models/items';
 import { InvoiceData } from '../_Models/invoice-data';
 import { Invoice } from '../_Models/invoice';
+
 
 @Injectable({
   providedIn: 'root'
@@ -41,6 +43,10 @@ export class InvoiceService {
 getInvoice_no(){
 
    return this.http.get<Invoice[]>('https://localhost:44311/api/Invoice');
+}
+getCustomers(){
+
+  return this.http.get<Customer[]>('https://localhost:44311/api/Customers');
 }
 
 public insertInvoice(data:InvoiceData[]){

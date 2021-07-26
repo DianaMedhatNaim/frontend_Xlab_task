@@ -72,20 +72,33 @@
       <div class="p-field p-grid">
 <label for="firstname" class="p-col-12 p-mb-2 p-md-2 p-mb-md-0">رقم الحركه</label>
 <div class="p-col-12 p-md-10">
-    <input id="firstname" type="text" pInputText [(ngModel)]="InvoiceId">
+    <input id="firstname" type="text" pInputText [(ngModel)]="InvoiceId" readonly>
 
 </div>
 </div>
 <div class="p-field p-grid">
 <label for="lastname" class="p-col-12 p-mb-2 p-md-2 p-mb-md-0">اسم العميل</label>
 <div class="p-col-12 p-md-10">
-    <input id="lastname" type="text" pInputText [(ngModel)]="custmerName">
+  <p-dropdown [(ngModel)]="custmerName" inputId="inventoryStatus" [options]="cbxCust" placeholder="Select" >
+    <ng-template let-option pTemplate="item">
+        <span [class]="'product-badge status-' + option.value">{{option.label}}</span>
+    </ng-template>
+  </p-dropdown>
+    <!-- <input id="lastname" type="text" pInputText [(ngModel)]="custmerName"> -->
 </div>
 </div>
+
 <div class="p-field p-grid">
 <label for="lastname" class="p-col-12 p-mb-2 p-md-2 p-mb-md-0">التاريخ </label>
 <div class="p-col-12 p-md-10">
-  <input id="lastname" type="text" pInputText [(ngModel)]="invoiceDate">
+  <!-- <div class="p-field p-col-12 p-md-4">
+
+    <p-calendar [(ngModel)]="invoiceDate" [showIcon]="true" inputId="icon"></p-calendar>
+</div> -->
+   <input id="lastname" type="datetime" pInputText [(ngModel)]="invoiceDate">
+   <!-- <p-calendar [(ngModel)]="invoiceDate" [showIcon]="true" inputId="icon"></p-calendar> -->
+  <!-- <p-calendar [(ngModel)]="invoiceDate" ></p-calendar> -->
+  <!-- <p-calendar  [(ngModel)]="invoiceDate" [showTransitionOptions]="'0ms'" [hideTransitionOptions]="'0ms'"></p-calendar> -->
 </div>
 </div>
 
@@ -93,16 +106,16 @@
 
   <ng-template pTemplate="right">
       <div class="p-col-6 p-md-5">
-<button pButton type="button" label="Clear Data" (click)="Clear_Data()"></button>
+<button class="btn" pButton type="button" label="Clear Data" (click)="Clear_Data()"></button>
 </div>
 <div class="p-col-6 p-md-5">
-<button pButton type="button" class="p-button-warning" label="Update" (click)="Update()"></button>
+<button class="btn1" pButton type="button" class="p-button-warning" label="Update" (click)="Update()"></button>
 </div>
 <div class="p-col-6 p-md-5">
-<button pButton type="button" class="p-button-success" label="Insert" (click)="Insert()"></button>
+<button class="btn2" pButton type="button" class="p-button-success" label="Insert" (click)="Insert()" [disabled]="btn_disabled"></button>
 </div>
 <div class="p-col-6 p-md-5">
-<button pButton type="button" class="p-button-danger" label="Delete" (click)="Delete()"></button>
+<button class="btn3" pButton type="button" class="p-button-danger" label="Delete" (click)="Delete()"></button>
 </div>
   </ng-template>
 </p-toolbar>
@@ -230,7 +243,7 @@
         <div class="p-formgrid p-grid">
             <div class="p-field p-col">
                 <label for="price">Price</label>
-                <p-inputNumber id="price" [(ngModel)]="product.item_Price" mode="currency" currency="USD" locale="en-US"></p-inputNumber>
+                <p-inputNumber aria-readonly="true"  id="price" [(ngModel)]="product.item_Price" mode="currency" currency="USD" locale="en-US"   ></p-inputNumber>
             </div>
             <div class="p-field p-col">
                 <label for="quantity">Quantity</label>
