@@ -311,6 +311,8 @@ console.log("pppp "+this.price);
     }
     Search()
     {
+      if(this.searchId!=undefined)
+      {
       this.btn_disabled=true;
       console.log("idd"+this.searchId);
       this.InvoiceService.getallInvoice(this.searchId).subscribe(data => {this.invoiceData = data;
@@ -339,6 +341,7 @@ console.log("pppp "+this.price);
 
     }
         );
+  }
     }
     Clear_Data()
     {
